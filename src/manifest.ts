@@ -50,6 +50,7 @@ const ManifestV2: Partial<ManifestV2> = {
     persistent: false,
   },
   web_accessible_resources: [
+    "src/common/*.js",
     "src/injected/*.js",
     "assets/*",
   ],
@@ -72,6 +73,7 @@ const ManifestV3: Partial<ManifestV3> = {
   web_accessible_resources: [
     {
       resources: [
+        "src/common/*.js",
         "src/injected/*.js",
         "assets/*",
       ],

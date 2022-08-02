@@ -1,19 +1,8 @@
-import { DevHookEvents } from "~/utils/consts";
+import { DevHookEvents } from "~/common/consts";
 
-import { Injector } from "@wendellhu/redi"
+import { DevHooks } from "~/types/hooks";
 
 
-
-export interface DevHooks {
-    devtoolsVersion: string,
-    enabled?: boolean
-    emit: (event: string, ...payload: any[]) => void
-    on: (event: string, handler: (...args: any[]) => void) => void
-    once: (event: string, handler: (...args: any[]) => void) => void
-    off: (event: string, handler: (...args: any[]) => void) => void
-    rootInjectors: Injector[],
-    _listeners: any,
-}
 
 function installHook(target: any) {
     const devtoolsVersion = '1.0'
@@ -96,14 +85,17 @@ function installHook(target: any) {
         },
     }
 
+    // 这里监听两个事件是为了在devtools启动之前就保存Injector
     hook.on(DevHookEvents.InjectorCreated, (injector: any) => {
         hook.rootInjectors.push(injector);
+        hook.emit(DevHookEvents.InjectorAdd, injector)
         console.log('[redi-dev] Injector created', injector);
     })
     hook.on(DevHookEvents.InjectorDisposed, (injector: any) => {
         const index = hook.rootInjectors.indexOf(injector);
         if (index >= 0) {
             hook.rootInjectors.splice(index, 1);
+            hook.emit(DevHookEvents.InjectorRemove, injector)
             console.log('[redi-dev] Injector disposed', injector);
         }
     })
