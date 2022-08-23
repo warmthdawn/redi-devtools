@@ -3,12 +3,6 @@
 
 export interface BackendApi {
 
-    getRootInjectors(): any;
-
-    findInjectorById(): any;
-
-
-    findDependencies(): any;
 
 
 
@@ -17,11 +11,4 @@ export interface BackendApi {
 
 export interface FrontendApi {
 
-    injectorCreated(): any;
-    injectorDisposed(): any;
-
-    dependencyAdded(): any;
-    dependencyDeleted(): any;
-
-    dependencyUpdated(): any;
 }

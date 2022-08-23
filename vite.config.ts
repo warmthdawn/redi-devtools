@@ -38,8 +38,8 @@ export default defineConfig(({ mode }) => {
             return "[name].[hash].js";
           }
         },
-
-      }
+      },
+      sourcemap: true,
     },
     plugins: [
       react(),

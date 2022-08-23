@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 
-const panel = await browser.devtools.panels.create("Redi Dependencies", "", "src/entries/devtools/panel/index.html");
+const panel = await browser.devtools.panels.create("Redi Dependencies", "", "src/frontend/devtools/panel/index.html");
 
 
 export { }

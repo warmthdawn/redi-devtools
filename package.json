@@ -13,6 +13,8 @@
   },
   "license": "MIT",
   "devDependencies": {
+
+    "@wendellhu/redi": "file:../redi/publish/wendellhu-redi-0.5.4.tgz",
     "@samrum/vite-plugin-web-extension": "^1.0.2",
     "@types/chrome": "^0.0.193",
     "@types/node": "^18.6.1",
@@ -25,11 +27,18 @@
     "web-ext": "^6.8.0"
   },
   "dependencies": {
-    "@wendellhu/redi": "^0.5.2",
     "events": "^3.3.0",
+    "nanoevents": "^7.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "reaflow": "^5.0.6",
     "rxjs": "^7.5.6",
+    "webext-bridge": "^5.0.5",
     "webextension-polyfill": "^0.9.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "elkjs": "^0.8.1"
+    }
   }
 }

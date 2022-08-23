@@ -12,6 +12,11 @@ const sharedManifest: Partial<ManifestBase> = {
       matches: ["*://*/*"],
       run_at: 'document_start'
     },
+    {
+      js: ["src/content/lazy-content-loader.ts"],
+      matches: ["*://*/*"],
+      run_at: 'document_start'
+    },
   ],
   icons: {
     16: "icons/16.png",
@@ -30,7 +35,10 @@ const sharedManifest: Partial<ManifestBase> = {
     open_in_tab: true,
   },
   devtools_page: "src/frontend/devtools/index.html",
-  permissions: [],
+  permissions: [
+    "scripting",
+    "tabs"
+  ],
 };
 
 const browserAction = {

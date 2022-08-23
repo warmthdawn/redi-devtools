@@ -2,10 +2,6 @@ import { Injector } from "@wendellhu/redi";
 import { BridgeCommands } from "./consts";
 
 
-export interface BridgeCommandArgsMap {
-    [BridgeCommands.F2B_GetRootInjectors]: BridgeCommand
-}
-
 
 export interface BridgeCommand {
     tabId: number;
@@ -22,4 +18,35 @@ export interface DevHooks {
     off: (event: string, handler: (...args: any[]) => void) => void
     rootInjectors: Injector[],
     _listeners: any,
+}
+
+
+export interface DependencyEdge {
+    fromNode: {
+        id: number,
+        injectorId: number,
+    },
+    toNode: {
+        id: number,
+        injectorId: number,
+    },
+    fromPort?: number,
+}
+
+export interface DependencyNode {
+    nodeId: number,
+    injectorId: number,
+    name: string,
+    description: string,
+    state: DependencyState,
+}
+
+export interface DependencyResponse {
+    node: DependencyNode,
+    startingEdges: DependencyEdge[]
+}
+
+
+export enum DependencyState {
+    Unknown,
 }

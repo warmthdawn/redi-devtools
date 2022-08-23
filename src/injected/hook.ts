@@ -1,9 +1,14 @@
+import type { Injector, debug } from "@wendellhu/redi";
 import { DevHookEvents } from "~/common/consts";
 
-import { DevHooks } from "~/types/hooks";
 
 
-
+/**
+ * 向浏览器注入一部分脚本
+ * 这个脚本会注入到每个浏览器页面，所以尽量不要在这边依赖外部模块。
+ * 因为目标浏览器创建 Injector 等时机不确定。
+ * @param target window 或者 global 对象
+ */
 function installHook(target: any) {
     const devtoolsVersion = '1.0'
     let listeners: any = {}
@@ -15,13 +20,13 @@ function installHook(target: any) {
         return
     }
 
-    let hook: DevHooks;
+    let hook: debug.DevHooks;
 
     hook = {
         devtoolsVersion,
         _listeners: listeners,
         enabled: undefined,
-        rootInjectors: [],
+        rootInjectors: new Map(),
 
         on(event: string, fn: (...args: any[]) => void) {
             const $event = '$' + event
@@ -85,19 +90,28 @@ function installHook(target: any) {
         },
     }
 
+    let currentId = 0;
+
     // 这里监听两个事件是为了在devtools启动之前就保存Injector
-    hook.on(DevHookEvents.InjectorCreated, (injector: any) => {
-        hook.rootInjectors.push(injector);
+    hook.on(DevHookEvents.InjectorCreated, (injector: Injector) => {
+        let id = currentId++;
+        injector._debuggerData!.id = id;
+        if(injector._debuggerData!.parent === null) {
+            hook.rootInjectors.set(id, injector);
+        }
         hook.emit(DevHookEvents.InjectorAdd, injector)
         console.log('[redi-dev] Injector created', injector);
     })
-    hook.on(DevHookEvents.InjectorDisposed, (injector: any) => {
-        const index = hook.rootInjectors.indexOf(injector);
-        if (index >= 0) {
-            hook.rootInjectors.splice(index, 1);
-            hook.emit(DevHookEvents.InjectorRemove, injector)
-            console.log('[redi-dev] Injector disposed', injector);
+    hook.on(DevHookEvents.InjectorDisposed, (injector: Injector) => {
+        const id = injector._debuggerData!.id;
+        if(injector._debuggerData!.parent === null) {
+            const removed = hook.rootInjectors.delete(id);
+            if (removed) {
+                hook.emit(DevHookEvents.InjectorRemove, injector)
+            }
         }
+        console.log('[redi-dev] Injector disposed', injector);
+        injector._debuggerData!.id = -1;
     })
 
 
