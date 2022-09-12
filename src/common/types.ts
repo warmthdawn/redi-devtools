@@ -33,7 +33,7 @@ export interface DependencyEdge {
     fromPort?: number,
 }
 
-export interface DependencyNode {
+export interface DependencyItemData {
     nodeId: number,
     injectorId: number,
     name: string,
@@ -41,12 +41,33 @@ export interface DependencyNode {
     state: DependencyState,
 }
 
-export interface DependencyResponse {
-    node: DependencyNode,
+export interface DependencyData {
+    item: DependencyItemData,
     startingEdges: DependencyEdge[]
 }
 
 
 export enum DependencyState {
     Unknown,
+}
+
+// Injector
+
+export interface InjectorData {
+    injectorId: number,
+    depth: number,
+    dependencySize: number,
+}
+
+export interface InjectorTreeNode {
+    id: number,
+    dependencySize: number,
+    parentId?: number,
+    children: InjectorTreeNode[],
+}
+
+
+export interface InjectorResponse {
+    injectors: InjectorData[],
+    maxDepth: number,
 }

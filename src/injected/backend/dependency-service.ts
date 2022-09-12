@@ -1,6 +1,6 @@
 import { DependencyItem, isAsyncDependencyItem, isClassDependencyItem, isFactoryDependencyItem, isValueDependencyItem, debug, Inject } from "@wendellhu/redi";
-import { DependencyEdge, DependencyNode, DependencyResponse, DependencyState } from "~/common/types";
-import { DebugMethodProvider, DependencyProvider, InjectorProvider } from "./hookService";
+import { DependencyEdge, DependencyItemData, DependencyData, DependencyState } from "~/common/types";
+import { DebugMethodProvider, DependencyProvider, InjectorProvider } from "./hook-service";
 
 type DependencyDescriptor<T> = debug.DependencyDescriptor<T>;
 
@@ -38,12 +38,12 @@ export class DependencyService {
             return [];
         }
 
-        throw new Error("Unknown dependency item, possibly forge to normalize it?")
+        throw new Error("Unknown dependency item, possibly forget to normalize it?")
     }
 
     public getDependencyNodes() {
         const { prettyPrintIdentifier } = this.debugMethod.get();
-        const result: DependencyResponse[] = [];
+        const result: DependencyData[] = [];
         const injectors = this.injectorProvider.getInjectors();
         for (const injector of injectors) {
             const id = injector._debuggerData!.id;
@@ -58,7 +58,7 @@ export class DependencyService {
                 }
                 const edges = this.getDependencyEdgesFrom(node)
                 result.push({
-                    node: {
+                    item: {
                         ...node,
                         name: text,
                         description: 'todo',

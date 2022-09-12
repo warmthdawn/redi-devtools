@@ -79,7 +79,7 @@ export class InjectorProvider implements Disposable {
 
     public getRootInjectors() {
         this.checkNotDisposed();
-        return [...this.rootInjectorIds].map(it => this.injectorMap.get(it));
+        return [...this.rootInjectorIds].map(it => this.injectorMap.get(it)!);
     }
 
     public getInjector(id: number) {
@@ -201,6 +201,8 @@ export class DependencyProvider implements Disposable {
 
     }
 
+    
+
     private checkNotDisposed() {
         if (this.disposed) {
             throw new RediDevError("DependencyProvider is disposed!");
@@ -286,5 +288,15 @@ export class DependencyProvider implements Disposable {
         return result;
     }
 
+
+    private onInjectorAdd() {
+
+    }
+
+    private onInjectorRemoved() {
+
+    }
+
+    
 
 }

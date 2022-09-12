@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "@wendellhu/redi": {
+      "signature": "fe65d7b3c6087aa36d05ba742acf3187",
+      "file": true
+    }
+  }
+}

@@ -1,0 +1,40 @@
+.injector-tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.injector-tree-container {
+    height: 100%;
+    display: flex;
+}
+.injector-tree-item {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    height: 44px;
+}
+.injector-tree-item .expand {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    line-height: 16px;
+    margin-right: 8px;
+}
+
+.injector-tree-item .title {
+    font-size: 16px;
+}
+
+
+.injector-tree-item-wrapper {
+    width: 200px;
+    margin: 2px;
+    overflow: hidden;
+}
+
+
+.injector-tree-item-wrapper:hover {
+    background-color: #EEEEEE;
+}

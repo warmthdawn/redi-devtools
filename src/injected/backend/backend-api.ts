@@ -1,9 +1,11 @@
 import { Disposable, Inject } from "@wendellhu/redi";
 import { REDI_DEVTOOLS_MESSAGE_FLAG } from "~/common/bridge";
 import { BridgeCommands } from "~/common/consts";
-import { BridgeCommand, DependencyResponse } from "~/common/types";
-import { DependencyService } from "./dependencyService";
-import { DependencyProvider, InjectorProvider } from "./hookService";
+import { BridgeCommand, DependencyData, InjectorResponse, InjectorTreeNode } from "~/common/types";
+import { InjectorNode } from "~/frontend/components/injector-tree";
+import { DependencyService } from "./dependency-service";
+import { DependencyProvider, InjectorProvider } from "./hook-service";
+import { InjectorService } from "./injector-service";
 
 
 export class BackendApi implements Disposable {
@@ -13,14 +15,19 @@ export class BackendApi implements Disposable {
         @Inject(InjectorProvider) private injectorProvider: InjectorProvider,
         @Inject(DependencyProvider) private dependencyProvider: DependencyProvider,
         @Inject(DependencyService) private dependencyService: DependencyService,
+        @Inject(InjectorService) private injectorService: InjectorService,
     ) {
 
     }
 
 
 
-    getDependencies(): DependencyResponse[] {
+    getDependencies(): DependencyData[] {
         return this.dependencyService.getDependencyNodes();
+    }
+
+    getInjectors(): InjectorTreeNode[] {
+        return this.injectorService.getInjectorTree();
     }
 
 
@@ -31,6 +38,16 @@ export class BackendApi implements Disposable {
             this.reply({
                 cmd: BridgeCommands.B2F_AllDependencies,
                 data: dependencies,
+            })
+            return;
+        }
+
+        if(message.cmd === BridgeCommands.F2B_GetInjectors) {
+            const injectors = this.getInjectors();
+
+            this.reply({
+                cmd: BridgeCommands.B2F_AllInjectors,
+                data: injectors,
             })
         }
     }

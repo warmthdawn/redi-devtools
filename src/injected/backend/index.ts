@@ -1,7 +1,8 @@
 import { Injector } from "@wendellhu/redi";
-import { BackendApi } from "./backendApi";
-import { DependencyService } from "./dependencyService";
-import { DebugMethodProvider, DependencyProvider, InjectorProvider } from "./hookService";
+import { BackendApi } from "./backend-api";
+import { DependencyService } from "./dependency-service";
+import { DebugMethodProvider, DependencyProvider, InjectorProvider } from "./hook-service";
+import { InjectorService } from "./injector-service";
 
 
 
@@ -10,7 +11,8 @@ const injector = new Injector([
     [InjectorProvider],
     [DependencyProvider],
     [BackendApi],
-    [DebugMethodProvider]
+    [DebugMethodProvider],
+    [InjectorService],
 ], { hideInDevtools: true });
 
 

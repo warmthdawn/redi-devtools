@@ -28,7 +28,6 @@ export const enum BridgeCommands {
     // Frontend to backend
 
     F2B_GetInjectors = "f2b:get-injectors",
-
     F2B_GetDependencies = "f2b:get-dependencies",
 
 
