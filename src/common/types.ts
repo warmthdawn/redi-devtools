@@ -21,7 +21,7 @@ export interface DevHooks {
 }
 
 
-export interface DependencyEdge {
+export interface DependencyRelation {
     fromNode: {
         id: number,
         injectorId: number,
@@ -43,7 +43,7 @@ export interface DependencyItemData {
 
 export interface DependencyData {
     item: DependencyItemData,
-    startingEdges: DependencyEdge[]
+    startingEdges: DependencyRelation[]
 }
 
 
@@ -61,6 +61,7 @@ export interface InjectorData {
 
 export interface InjectorTreeNode {
     id: number,
+    name: string,
     dependencySize: number,
     parentId?: number,
     children: InjectorTreeNode[],

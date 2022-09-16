@@ -1,14 +1,22 @@
 import { DependencyItemData, InjectorData } from "~/common/types";
 import distinctColors from "distinct-colors";
+import { InjectorNode } from "../model/injector-model";
+import { DependencyNode } from "../model/dependency-model";
+import { DepNodeMetadata } from "../components/graph";
 
-export function nodeStyle(palette: Map<number, string>, node?: DependencyItemData) {
-    const injectorColor = (node && palette.get(node?.injectorId)) || defaultColor;
+export function nodeStyle(palette: Map<number, string>, meta?: DepNodeMetadata) {
+    const injectorColor = (meta && palette.get(meta?.injectorId)) || defaultColor;
 
     return {
         stroke: injectorColor,
         fill: 'white', // TODO
         strokeWidth: 2,
     }
+}
+
+
+export function injecotrColor(palette: Map<number, string>, injectorId: number) {
+   return palette.get(injectorId) || defaultColor;
 }
 
 const defaultColor = "#444";
@@ -33,9 +41,9 @@ function regeneratePalette(max: number) {
 }
 
 
-export function injectorPaletteFor(injectors: InjectorData[]): Map<number, string> {
+export function injectorPaletteFor(injectors: InjectorNode[]): Map<number, string> {
     const size = injectors.length;
     const palette = regeneratePalette(size);
 
-    return new Map(injectors.map(({ injectorId }, index) => [injectorId, palette[index]]))
+    return new Map(injectors.map(({ id }, index) => [id, palette[index]]))
 }

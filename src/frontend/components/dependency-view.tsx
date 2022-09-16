@@ -1,13 +1,18 @@
 import React from "react";
-import { DependencyData, InjectorResponse } from "~/common/types";
-import { DependencyGraph, InjectorPresentation } from "./graph";
+import { DependencyData, InjectorResponse, InjectorTreeNode } from "~/common/types";
+import { DependencyGraph } from "./graph";
 import browser from 'webextension-polyfill'
 import { BridgeCommands } from "~/common/consts";
+import { InjectorModel, InjectorPresentation } from "../model/injector-model";
+import { ModelContext } from "../utils/hooks";
+import { DependencyDataModel } from "../model/dependency-model";
+import { InjectorTree } from "./injector-tree";
+import { GraphPanel } from "./graph-panel";
+
+import "./dependency-view.css"
 
 
 interface DependencyViewState {
-    dependencies: DependencyData[],
-    injectors: InjectorResponse,
     presentation: Map<number, InjectorPresentation>
 }
 
@@ -21,16 +26,13 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
         super(props)
 
         this.state = {
-            dependencies: [],
-            injectors: {
-                injectors: [],
-                maxDepth: 0,
-            },
             presentation: new Map()
         }
     }
 
     private connection: browser.Runtime.Port | null = null;
+
+    static contextType?: React.Context<any> | undefined = ModelContext;
 
     componentDidMount() {
 
@@ -56,22 +58,28 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
 
         this.connection?.postMessage({
             tabId: browser.devtools.inspectedWindow.tabId,
+            cmd: BridgeCommands.F2B_GetInjectors
+        })
+        
+        this.connection?.postMessage({
+            tabId: browser.devtools.inspectedWindow.tabId,
             cmd: BridgeCommands.F2B_GetDependencies
         })
 
-        this.connection?.postMessage({
-            tabId: browser.devtools.inspectedWindow.tabId,
-            cmd: BridgeCommands.F2B_GetInjectors
-        })
     }
 
     render(): React.ReactNode {
         return (
-            <DependencyGraph
-                dependencies={this.state.dependencies}
-                injectors={this.state.injectors}
-                presentation={this.state.presentation}
-            />
+            <div className="content">
+                <InjectorTree
+                    injectorPresentation={this.state.presentation}
+                    updatePresentation={(id, presentation) =>
+                        this.setState({
+                            presentation: new Map(this.state.presentation.set(id, presentation)),
+                        })
+                    } />
+                <GraphPanel injectorPresentation={this.state.presentation} />
+            </div>
         )
     }
 
@@ -84,17 +92,18 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
 
         if (message.cmd === BridgeCommands.B2F_AllDependencies) {
             const dependencies = message.data as DependencyData[];
-            this.setState({
-                dependencies
-            });
+            const depModel: DependencyDataModel = this.context.dependencyModel;
+            depModel.clear();
+            dependencies.forEach(it => {
+                depModel.addDependency(it);
+            })
             return;
         }
 
         if (message.cmd === BridgeCommands.B2F_AllInjectors) {
-            const injectors = message.data as InjectorResponse;
-            this.setState({
-                injectors
-            });
+            const injectors = message.data as InjectorTreeNode[];
+            const injectorModel: InjectorModel = this.context.injectorModel;
+            injectorModel.updateInjectors(injectors);
             return;
         }
     }

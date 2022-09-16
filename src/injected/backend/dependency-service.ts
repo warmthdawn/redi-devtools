@@ -1,5 +1,5 @@
 import { DependencyItem, isAsyncDependencyItem, isClassDependencyItem, isFactoryDependencyItem, isValueDependencyItem, debug, Inject } from "@wendellhu/redi";
-import { DependencyEdge, DependencyItemData, DependencyData, DependencyState } from "~/common/types";
+import { DependencyRelation, DependencyItemData, DependencyData, DependencyState } from "~/common/types";
 import { DebugMethodProvider, DependencyProvider, InjectorProvider } from "./hook-service";
 
 type DependencyDescriptor<T> = debug.DependencyDescriptor<T>;
@@ -78,7 +78,7 @@ export class DependencyService {
             return [];
         }
 
-        const result: DependencyEdge[] = [];
+        const result: DependencyRelation[] = [];
 
         const fromNode = {
             id: node.nodeId,

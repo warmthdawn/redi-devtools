@@ -1,41 +1,16 @@
 import React, { Children, useMemo, useState } from "react"
+import { InjectorNode, InjectorPresentation } from "../model/injector-model"
+import { useListener, useModel } from "../utils/hooks"
 import "./injector-tree.css"
 
 
-export enum InjectorPresentation {
-    /**
-     * 完全隐藏 Injector 和它所包含的 Dependency、子 Injector
-     */
-    HIDDEN,
-    /**
-     * 将Injector只显示为一个节点
-     */
-    COLLPASED,
-    /**
-     * 只显示 Injector 中被依赖的节点
-     */
-    EXTERNALIZED,
-    /**
-     * 只显示被依赖的节点，分组展示，不限显示内部关系
-     */
-    GROUPED,
-    /**
-     * 完全展开节点
-     */
-    EXPANDED,
-}
+export const InjectorTree: React.FC<{ injectorPresentation: Map<number, InjectorPresentation>, updatePresentation: (id: number, presentation: InjectorPresentation) => void }> = (props) => {
 
-export interface InjectorNode {
-    id: string,
-    name: string,
-    children?: InjectorNode[]
-}
+    const [expandedKeys, updateExpandedKeys] = useState<Set<number>>(new Set())
 
+    const { injectorModel } = useModel();
 
-export const InjectorTree: React.FC<{ roots: InjectorNode[] }> = (props) => {
-
-    const [expandedKeys, updateExpandedKeys] = useState<Set<string>>(new Set())
-
+    useListener(injectorModel!.$update.asObservable())
 
     const toggleExpand = (node: InjectorNode, state?: boolean) => {
         updateExpandedKeys(oldData => {
@@ -58,8 +33,20 @@ export const InjectorTree: React.FC<{ roots: InjectorNode[] }> = (props) => {
     return (
         <div className="injector-tree-container">
             <ul className="injector-tree">
-                {props.roots.map(it => (
-                    <InjectorTreeNode node={it} isExpand={(id) => expandedKeys.has(id)} onClick={toggleExpand} />
+                {injectorModel!.getTree().map(it => (
+                    <InjectorTreeNode
+                        node={it}
+                        isExpand={(id) => expandedKeys.has(id)}
+                        onClick={(id) => {
+                            let current = props.injectorPresentation.get(id.id);
+                            if (typeof current === "undefined") {
+                                current = InjectorPresentation.EXPANDED;
+                            }
+                            props.updatePresentation(id.id, (current + 1) % 5)
+                        }}
+                        presentation={props.injectorPresentation}
+                        onExpand={toggleExpand}
+                    />
                 ))}
 
             </ul>
@@ -70,14 +57,16 @@ export const InjectorTree: React.FC<{ roots: InjectorNode[] }> = (props) => {
 
 export interface InjectorTreeNodeProps {
     node: InjectorNode
-    isExpand(id: string): boolean,
+    isExpand(id: number): boolean,
     depth?: number
+    presentation: Map<number, InjectorPresentation>,
+    onExpand(node: InjectorNode): void
     onClick(node: InjectorNode): void
 }
 
 export const InjectorTreeNode: React.FC<InjectorTreeNodeProps> = (props) => {
 
-    const { node, isExpand, onClick: onExpand } = props;
+    const { node, isExpand, onClick, onExpand, presentation } = props;
 
     const depth = props.depth || 0;
     const hasChildren = node.children && node.children.length > 0;
@@ -93,14 +82,14 @@ export const InjectorTreeNode: React.FC<InjectorTreeNodeProps> = (props) => {
                     >
                         <span className="expand"
                             onClick={() => onExpand(node)}>{hasChildren ? (expanded ? "-" : "+") : " "}</span>
-                        <span className="title">{node.name}</span>
+                        <span className="title" onClick={() => onClick(node)}>{node.name}[{presentation.get(node.id)}]</span>
                     </div>
                 </div>
             </li>
         </React.Fragment>
         {
             expanded && node.children?.map(it => (
-                <InjectorTreeNode node={it} depth={depth + 1} isExpand={isExpand} onClick={onExpand} />
+                <InjectorTreeNode node={it} depth={depth + 1} isExpand={isExpand} onClick={onClick} onExpand={onExpand} presentation={presentation} />
             ))
         }
     </>
