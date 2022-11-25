@@ -7,33 +7,6 @@ export class InjectorService {
         @Inject(InjectorProvider) private injectorProvider: InjectorProvider,
     ) { }
 
-    public getInjectors(): InjectorResponse {
-
-        const injectors = this.injectorProvider.getInjectors();
-
-        const result: InjectorData[] = new Array(injectors.length);
-
-        let maxDepth = 0;
-        for (let i = 0; i < injectors.length; i++) {
-            const element = injectors[i];
-            const depth = this.injectorDepth(element);
-            const dependencySize = this.countDependencies(element);
-
-            maxDepth = Math.max(depth, maxDepth);
-            result[i] = {
-                injectorId: element._debuggerData!.id as number,
-                depth,
-                dependencySize,
-            }
-        }
-
-        return {
-            injectors: result,
-            maxDepth,
-        }
-
-    }
-
     public getInjectorTree(): InjectorTreeNode[] {
         const roots = this.injectorProvider.getRootInjectors();
 

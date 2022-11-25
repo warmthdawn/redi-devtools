@@ -14,6 +14,7 @@ import "./dependency-view.css"
 
 interface DependencyViewState {
     presentation: Map<number, InjectorPresentation>
+    backendReady: boolean,
 }
 
 
@@ -26,7 +27,8 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
         super(props)
 
         this.state = {
-            presentation: new Map()
+            presentation: new Map(),
+            backendReady: false,
         }
     }
 
@@ -34,18 +36,23 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
 
     static contextType?: React.Context<any> | undefined = ModelContext;
 
+    // 防止因为state刷新不及时丢事件
+    private backendReady = false;
+
     componentDidMount() {
 
         this.connection = browser.runtime.connect({
             name: "devtools-dependency-view"
         })
 
-        this.connection?.onMessage.addListener(this.onMessage.bind(this))
+        this.connection?.onMessage?.addListener(this.onMessage.bind(this))
 
         this.connection?.postMessage({
             cmd: BridgeCommands.Core_DevtoolsInit,
             tabId: browser.devtools.inspectedWindow.tabId,
         })
+
+        this.connection?.onDisconnect?.addListener(this.onDisconnect.bind(this));
 
     }
     componentWillUnmount() {
@@ -54,13 +61,20 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
 
     }
 
-    backendInjected() {
+    onDisconnect(port: browser.Runtime.Port) {
+        this.setState({
+            backendReady: false,
+        });
+        this.backendReady = false;
+    }
+
+    refresh() {
 
         this.connection?.postMessage({
             tabId: browser.devtools.inspectedWindow.tabId,
             cmd: BridgeCommands.F2B_GetInjectors
         })
-        
+
         this.connection?.postMessage({
             tabId: browser.devtools.inspectedWindow.tabId,
             cmd: BridgeCommands.F2B_GetDependencies
@@ -69,8 +83,8 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
     }
 
     render(): React.ReactNode {
-        return (
-            <div className="content">
+        return [
+            (<div className="content">
                 <InjectorTree
                     injectorPresentation={this.state.presentation}
                     updatePresentation={(id, presentation) =>
@@ -79,14 +93,40 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
                         })
                     } />
                 <GraphPanel injectorPresentation={this.state.presentation} />
-            </div>
-        )
+            </div>),
+            this.state.backendReady ? null : (
+                <div className='modal'>
+                    <div className="modal-content">
+                        <p>Devtools could not connect to page...</p>
+                    </div>
+                </div>
+            )
+
+        ]
     }
 
 
     onMessage(message: any, conn: browser.Runtime.Port) {
+        if (message.cmd === BridgeCommands.Core_BackendDisconnected) {
+            this.setState({
+                backendReady: false,
+            });
+            this.backendReady = false;
+        }
         if (message.cmd === BridgeCommands.B2F_BackendApiReady) {
-            this.backendInjected();
+            this.setState({
+                backendReady: true,
+            });
+            this.backendReady = true;
+            this.refresh();
+            return;
+        }
+
+        if (!this.backendReady) {
+            return;
+        }
+        if (message.cmd === BridgeCommands.B2F_DoRefresh) {
+            this.refresh();
             return;
         }
 
@@ -105,6 +145,14 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
             const injectorModel: InjectorModel = this.context.injectorModel;
             injectorModel.updateInjectors(injectors);
             return;
+        }
+
+        if (message.cmd === BridgeCommands.B2F_DependencyRemove) {
+
+        }
+
+        if (message.cmd === BridgeCommands.B2F_DependencyAdd) {
+
         }
     }
 

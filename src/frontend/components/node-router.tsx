@@ -1,6 +1,6 @@
 import React from "react";
 import { Label, Node, NodeProps } from "reaflow";
-import { DependencyItemData } from "~/common/types";
+import { DependencyIdentifierData } from "~/common/types";
 import { InjectorModel } from "../model/injector-model";
 import { injecotrColor, nodeStyle } from "../utils/color-utils";
 import { useListener, useModel } from "../utils/hooks";

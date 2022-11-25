@@ -60,6 +60,7 @@ const ManifestV2: Partial<ManifestV2> = {
   web_accessible_resources: [
     "src/common/*.js",
     "src/injected/*.js",
+    "src/content/*.js",
     "assets/*",
   ],
   browser_action: browserAction,

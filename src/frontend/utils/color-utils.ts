@@ -1,4 +1,4 @@
-import { DependencyItemData, InjectorData } from "~/common/types";
+import { DependencyIdentifierData, InjectorData } from "~/common/types";
 import distinctColors from "distinct-colors";
 import { InjectorNode } from "../model/injector-model";
 import { DependencyNode } from "../model/dependency-model";

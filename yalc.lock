@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "@wendellhu/redi": {
-      "signature": "e382075f50bd2211e434df5e9e4f295e",
+      "signature": "d5ec3aee1b34d6bcff648a5b72255d23",
       "file": true
     }
   }

@@ -7,7 +7,8 @@ export const enum DevHookEvents {
     DependencyAdded = 'dependency:added',
     DependencyRemoved = 'dependency:removed',
     DependencyFetched = 'dependency:fetched',
-
+    LazyDependencyInitialized = 'dependency:lazy-init', 
+    AsyncDependencyReady = 'dependency:async-ready', 
 }
 
 
@@ -18,7 +19,7 @@ export const enum BridgeCommands {
      * Devtools初始化
      */
     Core_DevtoolsInit = "core:devtools-init",
-    Core_PageLoadOrReload = "core:page-load-or-reload",
+    Core_BackendDisconnected = "core:backend-disconnected",
     /**
      * Backend 脚本注入情况
      */
@@ -35,6 +36,10 @@ export const enum BridgeCommands {
     B2F_AllInjectors = 'b2f:all-injectors',
     B2F_AllDependencies = 'b2f:all-dependencies',
     B2F_BackendApiReady = "b2f:backend-api-ready",
+
+    B2F_DependencyAdd = 'b2f:dependency-add',
+    B2F_DependencyRemove = 'b2f:dependency-remove',
+    B2F_DoRefresh = 'b2f:do-refresh',
 
 
 }

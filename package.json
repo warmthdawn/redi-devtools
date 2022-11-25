@@ -9,7 +9,7 @@
     "watch": "vite build --watch",
     "dev": "vite",
     "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
-    "serve:chrome": "web-ext run -t chromium --start-url \"https://google.com\" --source-dir ./dist/",
+    "serve:chrome": "web-ext run -t chromium --start-url \"http://localhost:3000\" --source-dir ./dist/",
     "preinstall": "rm -rf ./node_modules/.ignored",
     "postinstall": "yalc update"
   },

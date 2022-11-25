@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Canvas, NodeData, EdgeData, Node, NodeProps, Label, EdgeProps, Edge } from 'reaflow';
-import { DependencyRelation, DependencyItemData, DependencyData, InjectorResponse } from '~/common/types';
+import { Canvas, NodeData, EdgeData, Node, NodeProps, Label, EdgeProps, Edge, PortData } from 'reaflow';
+import { DependencyRelation, DependencyIdentifierData, DependencyData, InjectorResponse } from '~/common/types';
 import { injectorPaletteFor } from '../utils/color-utils';
 import { renderNode } from './node-router';
 
@@ -41,17 +41,30 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
 
   const createNode = useCallback((node: DependencyNode, depth?: string): NodeData<NodeMetadata> => {
+    const ports: PortData[] = [];
+    for (let i = 0; i < node.portCount; i++) {
+      ports.push({
+        id: `p${node.id}#${i}`,
+        height: 0,
+        width: 0,
+        hidden: true,
+        side: 'SOUTH'
+      })
+    }
+
     if (depth) {
       return {
         id: node.nodeId,
         text: node.text,
         layoutOptions: {
           'partitioning.partition': depth,
+          'portConstraints': 'FIXED_SIDE',
         } as any,
         data: {
           injectorId: node.injectorId,
           type: 'dependency',
-        }
+        },
+        ports,
       }
     }
     return {
@@ -60,7 +73,8 @@ export function DependencyGraph(props: DependencyGraphProps) {
       data: {
         injectorId: node.injectorId,
         type: 'dependency',
-      }
+      },
+      ports,
     }
   }, [])
 
@@ -161,7 +175,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
           nodePadding: [32, 5, 5, 5],
           layoutOptions: {
             'partitioning.partition': depth || "0",
-            'portConstraints': 'FREE'
+            'portConstraints': 'FREE',
           } as any,
           data,
         })
@@ -171,6 +185,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
           text: injector?.name || "Unknown",
           layoutOptions: {
             'partitioning.partition': depth || "0",
+            'portConstraints': 'FIXED_SIDE',
           } as any,
           data,
         })
@@ -190,6 +205,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
       if (fromPres === InjectorPresentation.COLLPASED) {
         edge.from = `i${it.fromInjector}`
+        edge.fromPort = undefined;
       }
       if (toPres === InjectorPresentation.COLLPASED) {
         edge.to = `i${it.toInjector}`
@@ -231,7 +247,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
         direction={'DOWN'}
         layoutOptions={{
           'nodePlacement.strategy': 'NETWORK_SIMPLEX',
-          'crossingMinimization.semiInteractive': 'true',
+          // 'crossingMinimization.semiInteractive': 'true',
           'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
           'partitioning.activate': 'true',
           'spacing': '25',

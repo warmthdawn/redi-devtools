@@ -2,6 +2,7 @@ import { DependencyIdentifier, Disposable, Inject, Injector, Quantity, debug, Lo
 import { InnerMethods } from "@wendellhu/redi/esm/innerMethods";
 import { DevHookEvents } from "~/common/consts";
 import { RediDevError } from "~/common/error";
+import { FrontendApi } from "./frontend-api";
 
 
 
@@ -114,11 +115,10 @@ export class DependencyProvider implements Disposable {
     private disposed = false;
 
     private dependencyById: Map<number, DependencyIdentifier<any>> = new Map();
-    // private idByDependency: Map<[number, DependencyIdentifier<any>], number> = new Map();
     private idByDependency: Map<number, Map<DependencyIdentifier<any>, number>> = new Map();
     private currentId = 0;
 
-    constructor(@Inject(InjectorProvider) injectorProvider: InjectorProvider) {
+    constructor(@Inject(InjectorProvider) injectorProvider: InjectorProvider, @Inject(FrontendApi) frontendApi: FrontendApi) {
         this.injectorProvider = injectorProvider;
         const hook = window.__REDI_DEVTOOLS_GLOBAL_HOOKS__!!;
         const addHook = (injector: Injector, dependency: DependencyIdentifier<any>) => {
@@ -130,6 +130,7 @@ export class DependencyProvider implements Disposable {
                 this.idByDependency.set(injectorId, new Map());
             }
             this.idByDependency.get(injectorId)!.set(dependency, id);
+            frontendApi.sendRefresh();
         }
         const removeHook = (injector: Injector, dependency: DependencyIdentifier<any>) => {
             const injectorId = injector._debuggerData!.id as number;
@@ -151,6 +152,7 @@ export class DependencyProvider implements Disposable {
             if (map.size === 0) {
                 this.idByDependency.delete(injectorId);
             }
+            frontendApi.sendRefresh();
 
         }
 
@@ -181,10 +183,15 @@ export class DependencyProvider implements Disposable {
             }
         }
 
+        const asyncResolved = (id: DependencyIdentifier<any>) => {
+          frontendApi.sendRefresh();
+        }
+
         hook.on(DevHookEvents.DependencyAdded, addHook)
         hook.on(DevHookEvents.DependencyRemoved, removeHook)
         hook.on(DevHookEvents.InjectorAdd, addAllHooks)
         hook.on(DevHookEvents.InjectorRemove, removeAllHooks)
+        hook.on(DevHookEvents.AsyncDependencyReady, asyncResolved)
 
 
         this.disposeCallback = () => {
@@ -192,6 +199,7 @@ export class DependencyProvider implements Disposable {
             hook.off(DevHookEvents.DependencyRemoved, removeHook)
             hook.off(DevHookEvents.InjectorAdd, addAllHooks)
             hook.off(DevHookEvents.InjectorRemove, removeAllHooks)
+            hook.off(DevHookEvents.AsyncDependencyReady, asyncResolved)
         }
 
         const injectors = injectorProvider.getInjectors()
@@ -201,6 +209,10 @@ export class DependencyProvider implements Disposable {
 
     }
 
+
+    public newOptionalDependency() {
+        
+    }
     
 
     private checkNotDisposed() {

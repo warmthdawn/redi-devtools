@@ -1,8 +1,7 @@
 import { Disposable, Inject } from "@wendellhu/redi";
 import { REDI_DEVTOOLS_MESSAGE_FLAG } from "~/common/bridge";
 import { BridgeCommands } from "~/common/consts";
-import { BridgeCommand, DependencyData, InjectorResponse, InjectorTreeNode } from "~/common/types";
-import { InjectorNode } from "~/frontend/components/injector-tree";
+import { DependencyData, InjectorTreeNode } from "~/common/types";
 import { DependencyService } from "./dependency-service";
 import { DependencyProvider, InjectorProvider } from "./hook-service";
 import { InjectorService } from "./injector-service";

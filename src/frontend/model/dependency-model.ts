@@ -21,7 +21,7 @@ export class DependencyDataModel {
 
     public addDependency(dep: DependencyData) {
         const edges: string[] = new Array(dep.startingEdges.length);
-        const depId = dep.item.nodeId;
+        const depId = dep.identifier.nodeId;
         for (let i = 0; i < dep.startingEdges.length; i++) {
             const item = dep.startingEdges[i];
             const edgeId = `e${item.fromNode.id}-${item.toNode.id}`;
@@ -33,8 +33,9 @@ export class DependencyDataModel {
         this.nodes.set(nodeId, {
             id: depId,
             nodeId,
-            injectorId: dep.item.injectorId,
-            text: dep.item.name,
+            injectorId: dep.identifier.injectorId,
+            text: dep.identifier.name,
+            portCount: dep.portCount,
             startingEdgeIds: edges,
         })
 
@@ -51,7 +52,7 @@ export class DependencyDataModel {
 
     public addEdge(edgeId: string, rel: DependencyRelation) {
 
-        const port =  typeof rel.fromPort === 'undefined' ? undefined : `p${rel.fromNode.id}-${rel.toNode.id}#${rel.fromPort}`
+        const port =  typeof rel.fromPort === 'undefined' ? undefined : `p${rel.fromNode.id}#${rel.fromPort}`
 
         this.edges.set(edgeId, {
             edgeId,
@@ -81,6 +82,7 @@ export interface DependencyNode {
     injectorId: number,
     text: string,
     startingEdgeIds: string[],
+    portCount: number,
 }
 
 

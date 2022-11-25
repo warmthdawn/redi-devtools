@@ -1,4 +1,5 @@
-import type { Injector, debug } from "@wendellhu/redi";
+import type { Injector, debug, DependencyIdentifier, DependencyItem } from "@wendellhu/redi";
+import { REDI_DEVTOOLS_ASYNC_CACHE } from "~/common/bridge";
 import { DevHookEvents } from "~/common/consts";
 
 
@@ -114,6 +115,9 @@ function installHook(target: any) {
         injector._debuggerData!.id = -1;
     })
 
+    hook.on(DevHookEvents.AsyncDependencyReady, (injector: Injector, id: any, item: any, thing: any) =>{
+        item[REDI_DEVTOOLS_ASYNC_CACHE] = thing;
+    });
 
     Object.defineProperty(target, '__REDI_DEVTOOLS_GLOBAL_HOOKS__', {
         get() {

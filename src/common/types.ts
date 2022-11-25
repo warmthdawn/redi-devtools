@@ -33,28 +33,38 @@ export interface DependencyRelation {
     fromPort?: number,
 }
 
-export interface DependencyItemData {
+export interface DependencyIdentifierData {
     nodeId: number,
     injectorId: number,
     name: string,
-    description: string,
-    state: DependencyState,
+    isOptional?: boolean,
 }
 
 export interface DependencyData {
-    item: DependencyItemData,
+    identifier: DependencyIdentifierData,
+    portCount: number,
+    items: DependencyItemData[],
     startingEdges: DependencyRelation[]
 }
 
+export interface DependencyItemData {
+    isAsync: boolean,
+    isResolved: boolean,
+    type: DependencyItemType,
+}
 
-export enum DependencyState {
-    Unknown,
+export enum DependencyItemType {
+    CLASS,
+    FACTORY,
+    VALUE,
+    UNKNOWN,
 }
 
 // Injector
 
 export interface InjectorData {
     injectorId: number,
+    name: string,
     depth: number,
     dependencySize: number,
 }

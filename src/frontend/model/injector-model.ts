@@ -6,6 +6,7 @@ export class InjectorModel {
     private rootNodes: InjectorNode[] = [];
     private nodeMap: Map<number, InjectorNode> = new Map();;
     private maxDepth = 0;
+    private rootDepthes: number[] = [];
 
     public $update = new Subject<{
         isAdd: boolean,
@@ -31,7 +32,9 @@ export class InjectorModel {
             return 0;
         }
 
-        return this.maxDepth - injector.depth + 1;
+        const currDepth = this.rootDepthes[injector.depth] || 0;
+
+        return currDepth - injector.depth + 1;
     }
 
 
@@ -40,11 +43,15 @@ export class InjectorModel {
         const pervious = new Set(this.nodeMap.keys());
 
         this.nodeMap.clear();
+        const rootLength = roots.length;
+        this.rootDepthes = new Array(rootLength);
+        this.rootNodes = new Array(rootLength);
         this.maxDepth = 0;
-        this.rootNodes = [];
-        for (const node of roots) {
-            const root = this.processInjector(node, 1);
-            this.rootNodes.push(root);
+        for(let i = rootLength - 1; i >= 0; i--) {
+            const node = roots[i];
+            const root = this.processInjector(node, this.maxDepth + 1, i);
+            this.rootNodes[i] = root;
+            this.rootDepthes[i] = this.maxDepth;
         }
 
         const newResult = new Set(this.nodeMap.keys());
@@ -69,11 +76,11 @@ export class InjectorModel {
 
     }
 
-    private processInjector(node: InjectorTreeNode, depth: number): InjectorNode {
+    private processInjector(node: InjectorTreeNode, depth: number, rootGroup: number): InjectorNode {
         const { id, name, dependencySize, parentId, children } = node;
 
         this.maxDepth = Math.max(this.maxDepth, depth);
-        const newChildren = children.map(it => this.processInjector(it, depth + 1));
+        const newChildren = children.map(it => this.processInjector(it, depth + 1, rootGroup));
 
         const result: InjectorNode = {
             id,
@@ -83,6 +90,7 @@ export class InjectorModel {
             dependencySize,
             parentId,
             presentation: InjectorPresentation.EXPANDED,
+            rootGroup,
         }
 
         this.nodeMap.set(id, result);
@@ -100,6 +108,7 @@ export interface InjectorNode {
     dependencySize: number,
     parentId?: number,
     presentation: InjectorPresentation,
+    rootGroup: number,
 }
 
 

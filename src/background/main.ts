@@ -20,7 +20,6 @@ browser.runtime.onConnect.addListener((port) => {
     return;
   }
 
-  console.log("[redi-dev] Devtools established a connection");
   const extensionListener = (message: any, port: Port) => {
     if (typeof message.tabId !== 'number') {
 
@@ -52,12 +51,13 @@ browser.runtime.onConnect.addListener((port) => {
     }
   }
 
+  console.log("[redi-dev] Devtools established a connection");
   // Listen to messages sent from the DevTools page
   port.onMessage.addListener(extensionListener);
 
   port.onDisconnect.addListener(function (port) {
     port.onMessage.removeListener(extensionListener);
-    console.log("[redi-dev] ContentScript closes a connection");
+    console.log("[redi-dev] Devtools closes a connection");
 
     for (const tabId of devtoolConnections.keys()) {
       if (devtoolConnections.get(tabId) === port) {
@@ -79,10 +79,9 @@ browser.runtime.onConnect.addListener((port) => {
 
   const tabId = port.sender.tab.id!;
 
-  console.log("[redi-dev] ContentScript established a connection");
-  const contentScriptListener = (message: any, port: Port) => {
+  const contentScriptListener = (message: any, _port: Port) => {
 
-    if (!(typeof message.cmd === "string") || !(message.cmd as string).startsWith("b2f:")) {
+    if (!(typeof message.cmd === "string") || (message.cmd as string).startsWith("f2b:")) {
       return;
     }
     console.log(`[redi-dev] ContentScript send a message: ${message.cmd}`, message);
@@ -94,6 +93,7 @@ browser.runtime.onConnect.addListener((port) => {
     }
   }
 
+  console.log("[redi-dev] ContentScript established a connection" + tabId);
   contentScriptConnections.set(tabId, port);
 
 
@@ -105,15 +105,28 @@ browser.runtime.onConnect.addListener((port) => {
     });
   }
 
+  const disconnectListener = (_port: Port) => {
+    
+    if (devtoolConnections.has(tabId)) {
+      devtoolConnections.get(tabId)!.postMessage({
+        cmd: BridgeCommands.Core_BackendDisconnected,
+        tabId: tabId,
+      });
+    } else {
+      console.log("Tab not found in connection list.");
+    }
+
+    port.onMessage.removeListener(contentScriptListener);
+    port.onDisconnect.removeListener(disconnectListener);
+    console.log("[redi-dev] ContentScript closes a connection " + tabId);
+
+    contentScriptConnections.delete(tabId);
+  }
+
   // Listen to messages sent from the DevTools page
   port.onMessage.addListener(contentScriptListener);
 
-  port.onDisconnect.addListener(function (port) {
-    port.onMessage.removeListener(contentScriptListener);
-    console.log("[redi-dev] Devtools closes a connection");
-
-    contentScriptConnections.delete(tabId);
-  });
+  port.onDisconnect.addListener(disconnectListener);
 
 
 });
