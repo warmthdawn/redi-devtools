@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 overrides:
-  elkjs: ^0.8.1
+  elkjs: ^0.8.2
 
 specifiers:
   '@samrum/vite-plugin-web-extension': ^1.0.2
@@ -1391,8 +1391,8 @@ packages:
     resolution: {integrity: sha512-ICHvGaCIQR3P88uK8aRtx8gmejbVJyC6bB4LEC3anzBrIzdzC7aiZHY4iFfXhN4st6I7lMO0x4sgBHf/7kBvRw==}
     dev: true
 
-  /elkjs/0.8.1:
-    resolution: {integrity: sha512-TGzfGxr1k5QsuFkftToVuEy5sBrKHRLZH63Uf/t85slqsS0n53TGAMHvjLnnnIKn2oEtlYfCmct0D4rwmwETCg==}
+  /elkjs/0.8.2:
+    resolution: {integrity: sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==}
     dev: false
 
   /ellipsize/0.2.0:
@@ -3417,7 +3417,7 @@ packages:
       calculate-size: 1.1.1
       classnames: 2.3.1
       d3-shape: 3.1.0
-      elkjs: 0.8.1
+      elkjs: 0.8.2
       ellipsize: 0.2.0
       framer-motion: 6.5.1_react-dom@17.0.2+react@17.0.2
       kld-affine: 2.1.1

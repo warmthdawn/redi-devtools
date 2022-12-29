@@ -94,7 +94,8 @@ export class DependencyView extends React.Component<{}, DependencyViewState> {
                     } />
                 <GraphPanel injectorPresentation={this.state.presentation} />
             </div>),
-            this.state.backendReady ? null : (
+            this.state.backendReady ? null : 
+            (
                 <div className='modal'>
                     <div className="modal-content">
                         <p>Devtools could not connect to page...</p>

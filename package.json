@@ -44,7 +44,7 @@
   },
   "pnpm": {
     "overrides": {
-      "elkjs": "^0.8.1"
+      "elkjs": "^0.8.2"
     }
   }
 }

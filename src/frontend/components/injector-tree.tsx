@@ -42,7 +42,7 @@ export const InjectorTree: React.FC<{ injectorPresentation: Map<number, Injector
                             if (typeof current === "undefined") {
                                 current = InjectorPresentation.EXPANDED;
                             }
-                            props.updatePresentation(id.id, (current + 1) % 5)
+                            props.updatePresentation(id.id, (current + 1) % 6)
                         }}
                         presentation={props.injectorPresentation}
                         onExpand={toggleExpand}

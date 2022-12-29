@@ -13,7 +13,6 @@ export class InjectorModel {
         injectorId: number,
     }>();
 
-
     public getInjector(id: number) {
         return this.nodeMap.get(id);
     }
@@ -26,15 +25,15 @@ export class InjectorModel {
         return [...this.nodeMap.values()]
     }
 
-    public getDepth(id: number) {
+    public getDepth(id: number) : [number, number]{
         const injector = this.getInjector(id);
         if(!injector) {
-            return 0;
+            return [0, 0];
         }
 
-        const currDepth = this.rootDepthes[injector.depth] || 0;
+        const currDepth = this.rootDepthes[injector.rootGroup] || 0;
 
-        return currDepth - injector.depth + 1;
+        return [currDepth - injector.depth + 1, currDepth + 1];
     }
 
 
@@ -46,12 +45,16 @@ export class InjectorModel {
         const rootLength = roots.length;
         this.rootDepthes = new Array(rootLength);
         this.rootNodes = new Array(rootLength);
-        this.maxDepth = 0;
-        for(let i = rootLength - 1; i >= 0; i--) {
+        let sumDepth = 0;
+        for(let i = 0; i < rootLength; i++) {
             const node = roots[i];
-            const root = this.processInjector(node, this.maxDepth + 1, i);
+            this.maxDepth = 0;
+            const root = this.processInjector(node, 1, i);
             this.rootNodes[i] = root;
-            this.rootDepthes[i] = this.maxDepth;
+            sumDepth += this.maxDepth;
+            this.rootDepthes[i] = sumDepth;
+            // 为 External 模式预留
+            sumDepth++;
         }
 
         const newResult = new Set(this.nodeMap.keys());
@@ -122,15 +125,19 @@ export enum InjectorPresentation {
      */
     COLLPASED = 1,
     /**
-     * 只显示 Injector 中被依赖的节点
+     * 将 Injector 作为外部依赖处理（所有此类型的 Injecotr 不会显示其中的相互依赖关系，且显示为一整个组）
      */
     EXTERNALIZED = 2,
     /**
-     * 只显示被依赖的节点，分组展示，不限显示内部关系
+     * 只显示被依赖的节点，分组展示，不显示内部关系
      */
     GROUPED = 3,
     /**
-     * 完全展开节点
+     * 完全展开节点，但是隐藏 Injector 本身，依赖以颜色作为区分（但是相同 Injector 的依赖会尽可能放在一起）
      */
     EXPANDED = 4,
+    /**
+     * 完整显示依赖关系
+     */
+    FULL = 5,
 }

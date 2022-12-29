@@ -3,6 +3,7 @@ import { REDI_DEVTOOLS_MESSAGE_FLAG } from "~/common/bridge";
 import { BridgeCommands } from "~/common/consts";
 import { DependencyData, InjectorTreeNode } from "~/common/types";
 import { DependencyService } from "./dependency-service";
+import { FrontendApi } from "./frontend-api";
 import { DependencyProvider, InjectorProvider } from "./hook-service";
 import { InjectorService } from "./injector-service";
 
@@ -15,6 +16,7 @@ export class BackendApi implements Disposable {
         @Inject(DependencyProvider) private dependencyProvider: DependencyProvider,
         @Inject(DependencyService) private dependencyService: DependencyService,
         @Inject(InjectorService) private injectorService: InjectorService,
+        @Inject(FrontendApi) private frontendApi: FrontendApi,
     ) {
 
     }
@@ -34,29 +36,14 @@ export class BackendApi implements Disposable {
     private onMessage(message: any) {
         if (message.cmd === BridgeCommands.F2B_GetDependencies) {
             const dependencies = this.getDependencies();
-            this.reply({
-                cmd: BridgeCommands.B2F_AllDependencies,
-                data: dependencies,
-            })
+            this.frontendApi.sendAllDependencies(dependencies);
             return;
         }
 
         if(message.cmd === BridgeCommands.F2B_GetInjectors) {
             const injectors = this.getInjectors();
-
-            this.reply({
-                cmd: BridgeCommands.B2F_AllInjectors,
-                data: injectors,
-            })
+            this.frontendApi.sendAllInjectors(injectors);
         }
-    }
-
-    private reply(message: any) {
-        window.postMessage({
-            [REDI_DEVTOOLS_MESSAGE_FLAG]: true,
-            payload: message,
-            direction: "TO_BACKGROUND",
-        })
     }
 
 
@@ -104,11 +91,7 @@ export class BackendApi implements Disposable {
 
 
         }).then(() => {
-            window.postMessage({
-                [REDI_DEVTOOLS_MESSAGE_FLAG]: true,
-                cmd: BridgeCommands.Core_BackendApiReady,
-                direction: "TO_CONTENT",
-            })
+            this.frontendApi.markBackendReady();
         }).catch(()=>{
             // TODO
         })

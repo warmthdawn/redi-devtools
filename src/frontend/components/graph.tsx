@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Canvas, NodeData, EdgeData, Node, NodeProps, Label, EdgeProps, Edge, PortData } from 'reaflow';
-import { DependencyRelation, DependencyIdentifierData, DependencyData, InjectorResponse } from '~/common/types';
-import { injectorPaletteFor } from '../utils/color-utils';
-import { renderNode } from './node-router';
+import { Canvas, NodeData, EdgeData, Node, NodeProps, EdgeProps, Edge, PortData } from 'reaflow';
 
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import './graph.css'
 import { InjectorPresentation } from '../model/injector-model';
 import { DependencyEdge, DependencyNode } from '../model/dependency-model';
-import { useListener, useModel } from '../utils/hooks';
+import { useModel } from '../utils/hooks';
+import { debounceTime, merge } from 'rxjs';
 
 export interface DepNodeMetadata {
   injectorId: number,
@@ -55,7 +53,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
     if (depth) {
       return {
         id: node.nodeId,
-        text: node.text,
+        text: node.text + "[" + depth + "]",
         layoutOptions: {
           'partitioning.partition': depth,
           'portConstraints': 'FIXED_SIDE',
@@ -70,6 +68,9 @@ export function DependencyGraph(props: DependencyGraphProps) {
     return {
       id: node.nodeId,
       text: node.text,
+      layoutOptions: {
+        'portConstraints': 'FIXED_SIDE',
+      } as any,
       data: {
         injectorId: node.injectorId,
         type: 'dependency',
@@ -106,7 +107,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
     const edges = dependencyModel!.getEdges();
     edges.forEach(it => {
       if (it.fromInjector === it.toInjector) {
-        if (getPresentation(it.fromInjector) !== InjectorPresentation.EXPANDED) {
+        if (getPresentation(it.fromInjector) < InjectorPresentation.EXPANDED) {
           hiddenEdges.add(it.edgeId);
         }
       } else {
@@ -129,13 +130,15 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
     const rendeingInjectors: Map<number, boolean> = new Map();
 
+    
+
     nodes.forEach(it => {
       const presentation = getPresentation(it.injectorId);
       if (presentation === InjectorPresentation.HIDDEN) {
         // hidden
         return;
       }
-      const depth = injectorModel!.getDepth(it.injectorId).toString();
+      const [depth, maxDepth] = injectorModel!.getDepth(it.injectorId).map(it => it.toString());
       if (presentation === InjectorPresentation.EXPANDED) {
         renderingNodes.unshift(createNode(it, depth))
         return;
@@ -143,16 +146,16 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
       if (presentation === InjectorPresentation.EXTERNALIZED) {
         if (externalNodes.has(it.nodeId)) {
-          renderingNodes.unshift(createNode(it, depth))
+          renderingNodes.unshift(createNode(it, maxDepth))
         }
         return;
       }
 
-      if (presentation === InjectorPresentation.GROUPED) {
+      if (presentation === InjectorPresentation.GROUPED || presentation === InjectorPresentation.FULL) {
         const node = createNode(it);
         node.parent = `i${it.injectorId}`;
         rendeingInjectors.set(it.injectorId, true)
-        renderingNodes.push(node)
+        renderingNodes.unshift(node)
       } else {
         rendeingInjectors.set(it.injectorId, false)
       }
@@ -161,7 +164,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
     rendeingInjectors.forEach((hasChildren, id) => {
       const injector = injectorModel!.getInjector(id)
-      const depth = injectorModel!.getDepth(id).toString();
+      const depth = injectorModel!.getDepth(id)[0].toString();
       const data: InjectorNodeMetadata = {
         injectorId: id,
         injectorName: injector?.name || "Unknown",
@@ -203,6 +206,10 @@ export function DependencyGraph(props: DependencyGraphProps) {
 
       const edge = createEdge(it);
 
+      if(fromPres === InjectorPresentation.FULL && it.fromInjector === it.toInjector) {
+        edge.parent = `i${it.fromInjector}`
+      }
+
       if (fromPres === InjectorPresentation.COLLPASED) {
         edge.from = `i${it.fromInjector}`
         edge.fromPort = undefined;
@@ -217,24 +224,20 @@ export function DependencyGraph(props: DependencyGraphProps) {
     setNodes(renderingNodes);
     setEdges(renderingEdges)
 
-  }, [injectorPresentation]);
+  }, [getPresentation, createEdge, createNode]);
 
   useEffect(() => {
-    const sub1 = dependencyModel!.$update.subscribe(it => {
-      refreshGraph();
-    })
-    const sub2 = injectorModel!.$update.subscribe(it => {
+    const sub = merge(dependencyModel!.$update, injectorModel!.$update).pipe(debounceTime(200)).subscribe(it => {
       refreshGraph();
     })
     return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
+      sub.unsubscribe();
     }
-  }, [])
+  }, [refreshGraph])
 
   useEffect(() => {
     refreshGraph();
-  }, [injectorPresentation])
+  }, [injectorPresentation, refreshGraph])
 
 
 
@@ -247,7 +250,7 @@ export function DependencyGraph(props: DependencyGraphProps) {
         direction={'DOWN'}
         layoutOptions={{
           'nodePlacement.strategy': 'NETWORK_SIMPLEX',
-          // 'crossingMinimization.semiInteractive': 'true',
+          'elk.layered.mergeHierarchyEdges': 'false',
           'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
           'partitioning.activate': 'true',
           'spacing': '25',
